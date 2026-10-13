@@ -52,6 +52,25 @@ input:focus,select:focus,.tab:focus-visible,.day:focus-visible,.slot:focus-visib
 .legend{display:flex;gap:16px;font-size:12px;color:var(--mut);margin-top:12px}
 footer{text-align:center;color:var(--mut);font-size:12.5px;margin-top:26px;line-height:1.7}footer b{color:var(--ink);letter-spacing:2px}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 2px 14px}
+.phead h3{margin:0;font-size:20px}.pbtns{display:flex;gap:8px}
+.btn.sm.neutral{color:var(--acc);border-color:var(--line);background:var(--card)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 8px;text-align:center;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:24px;color:var(--acc);line-height:1.2}.stat span{font-size:12px;color:var(--mut)}
+.seg{display:flex;gap:4px;background:var(--dis);padding:4px;border-radius:14px;margin-bottom:14px;border:1px solid var(--line)}
+.seg-b{flex:1;border:0;background:transparent;color:var(--mut);padding:10px 6px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.seg-b.on{background:var(--card);color:var(--acc);box-shadow:var(--shadow)}
+.dh{display:flex;justify-content:space-between;align-items:baseline;margin:18px 4px 8px;font-weight:700}.dh small{color:var(--mut);font-weight:400}
+.ap{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
+.tm{min-width:62px;text-align:center;background:var(--tint);color:var(--acc);border-radius:12px;padding:8px 6px}.tm b{display:block;font-size:19px;line-height:1.1}.tm small{font-size:11px}
+.inf{flex:1;min-width:0}.inf>b{display:block;font-size:16px;overflow:hidden;text-overflow:ellipsis}
+.tag{display:inline-block;background:var(--tint);color:var(--acc);font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;margin:3px 8px 0 0}
+.acts{display:flex;gap:8px;flex-basis:100%;padding-top:10px;border-top:1px solid var(--line)}
+.ic{flex:1;text-align:center;padding:9px 4px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--acc);font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;font-family:inherit}
+.ic.bad{color:var(--bad);border-color:var(--bad)}
+.empty{text-align:center;padding:26px 10px}
+.quick{display:flex;gap:8px;flex-wrap:wrap}.qk{border:1.5px solid var(--acc);background:var(--tint);color:var(--acc);border-radius:999px;padding:8px 14px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit}
 </style>
 </head>
 <body>
@@ -97,13 +116,24 @@ footer{text-align:center;color:var(--mut);font-size:12.5px;margin-top:26px;line-
       <label for="pass">Contraseña</label><input id="pass" type="password" autocomplete="current-password">
       <button class="btn" id="login">Entrar</button></div>
     <div id="panel" class="hide">
-      <div class="card"><h2>Próximas citas <button class="btn sm" id="logout" style="float:right">Salir</button></h2><div id="adminList"></div></div>
-      <div class="card"><h2>Bloquear horario</h2>
-        <label for="bDate">Día</label><input id="bDate" type="date">
-        <label for="bTime">Hora</label><select id="bTime"></select>
-        <label for="bWhy">Motivo (opcional)</label><input id="bWhy" maxlength="80" placeholder="Día libre, cita médica…">
-        <button class="btn" id="bAdd">Bloquear</button>
-        <div id="blockList" style="margin-top:10px"></div></div>
+      <div class="phead"><div><h3>Panel del barbero</h3><span class="mut" id="pDate"></span></div>
+        <div class="pbtns"><button class="btn sm neutral" id="pRef">Actualizar</button><button class="btn sm neutral" id="logout">Salir</button></div></div>
+      <div class="stats">
+        <div class="stat"><b id="sToday">0</b><span>Citas hoy</span></div>
+        <div class="stat"><b id="sNext">–</b><span>Próxima cita</span></div>
+        <div class="stat"><b id="sTotal">0</b><span>Próximas en total</span></div>
+      </div>
+      <div class="seg"><button class="seg-b on" data-p="pAgenda">Agenda</button><button class="seg-b" data-p="pBloqueos">Bloquear horario</button></div>
+      <div id="pAgenda"><div id="adminList"></div></div>
+      <div id="pBloqueos" class="hide">
+        <div class="card"><h2>Bloquear un horario</h2>
+          <div class="quick"><button class="qk" data-q="0">Hoy todo el día</button><button class="qk" data-q="1">Mañana todo el día</button></div>
+          <label for="bDate">Día</label><input id="bDate" type="date">
+          <label for="bTime">Hora</label><select id="bTime"></select>
+          <label for="bWhy">Motivo (opcional)</label><input id="bWhy" maxlength="80" placeholder="Día libre, cita médica…">
+          <button class="btn" id="bAdd">Bloquear</button></div>
+        <div class="card"><h2>Horarios bloqueados</h2><div id="blockList"></div></div>
+      </div>
     </div>
   </section>
 <footer><b>AVENIDA 79</b><br>Barbería profesional · Corte y afeitado</footer>
@@ -199,26 +229,44 @@ $('login').onclick=async()=>{
   showPanel();
 };
 $('logout').onclick=async()=>{await sb.auth.signOut();showPanel()};
+const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+function dayLabel(s){const t=new Date(),m=new Date(t.getFullYear(),t.getMonth(),t.getDate()+1),d=pd(s);if(s===iso(t))return'Hoy';if(s===iso(m))return'Mañana';return `${dn[d.getDay()]} ${d.getDate()} ${MES[d.getMonth()]}`}
+function t12(t){let[h,m]=t.slice(0,5).split(':').map(Number);const x=h>=12?'p.m.':'a.m.';h=h%12||12;return[`${h}:${pad(m)}`,x]}
 async function showPanel(){
   const{data:{session}}=await sb.auth.getSession();
   $('loginBox').classList.toggle('hide',!!session);$('panel').classList.toggle('hide',!session);
   if(!session)return;
-  const today=iso(new Date());
+  const now=new Date(),today=iso(now),nm=now.getHours()*60+now.getMinutes();
+  const f=now.toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'});$('pDate').textContent=f.charAt(0).toUpperCase()+f.slice(1);
   const[a,b]=await Promise.all([
     sb.from('appointments').select('*').gte('date',today).order('date').order('time'),
     sb.from('blocked').select('*').gte('date',today).order('date').order('time')]);
-  $('adminList').innerHTML=(a.data||[]).map(r=>`<div class="appt"><div><b>${esc(r.date)} · ${esc(r.time.slice(0,5))}</b><br><span class="mut">${esc(r.name)} · ${esc(r.phone)} · ${esc(r.service)}</span></div><button class="btn sm" data-a="${r.id}">Cancelar</button></div>`).join('')||'<p class="mut">Sin citas próximas.</p>';
-  $('blockList').innerHTML=(b.data||[]).map(r=>`<div class="appt"><div><b>${esc(r.date)} · ${r.time?esc(r.time.slice(0,5)):'Todo el día'}</b><br><span class="mut">${esc(r.reason||'')}</span></div><button class="btn sm" data-b="${r.id}">Quitar</button></div>`).join('');
-  document.querySelectorAll('[data-a]').forEach(x=>x.onclick=async()=>{if(confirm('¿Cancelar esta cita?')){await sb.from('appointments').delete().eq('id',x.dataset.a);showPanel();loadBusy()}});
-  document.querySelectorAll('[data-b]').forEach(x=>x.onclick=async()=>{await sb.from('blocked').delete().eq('id',x.dataset.b);showPanel();loadBusy()});
+  const rows=a.data||[],blocks=b.data||[];
+  const nxt=rows.find(r=>r.date>today||(r.date===today&&(h=>h[0]*60+h[1])(r.time.slice(0,5).split(':').map(Number))>=nm));
+  $('sToday').textContent=rows.filter(r=>r.date===today).length;
+  $('sTotal').textContent=rows.length;
+  $('sNext').textContent=nxt?t12(nxt.time).join(' '):'–';
+  const groups={};rows.forEach(r=>(groups[r.date]=groups[r.date]||[]).push(r));
+  $('adminList').innerHTML=Object.keys(groups).map(d=>`<div class="dh"><span>${dayLabel(d)}</span><small>${groups[d].length} ${groups[d].length===1?'cita':'citas'}</small></div>`+groups[d].map(r=>{
+    const[hh,ap]=t12(r.time),ph=norm(r.phone),wa=ph.length===8?'506'+ph:ph;
+    return `<div class="ap"><div class="tm"><b>${hh}</b><small>${ap}</small></div><div class="inf"><b>${esc(r.name)}</b><span class="tag">${esc(r.service)}</span><span class="mut">${esc(r.phone)}</span></div><div class="acts"><a class="ic" href="tel:+${wa}">Llamar</a><a class="ic" href="https://wa.me/${wa}" target="_blank" rel="noopener">WhatsApp</a><button class="ic bad" data-a="${r.id}">Cancelar</button></div></div>`}).join('')).join('')
+    ||'<div class="card empty"><b>No hay citas próximas</b><p class="mut" style="margin:6px 0 0">Cuando un cliente reserve, va a aparecer aquí.</p></div>';
+  $('blockList').innerHTML=blocks.map(r=>`<div class="appt"><div><b>${dayLabel(r.date)} · ${r.time?t12(r.time).join(' '):'Todo el día'}</b><br><span class="mut">${esc(r.reason||'Sin motivo')}</span></div><button class="btn sm" data-b="${r.id}">Quitar</button></div>`).join('')||'<p class="mut" style="margin:0">No hay horarios bloqueados.</p>';
+  document.querySelectorAll('[data-a]').forEach(x=>x.onclick=async()=>{if(confirm('¿Cancelar esta cita?')){await sb.from('appointments').delete().eq('id',x.dataset.a);flash('Cita cancelada');showPanel();loadBusy()}});
+  document.querySelectorAll('[data-b]').forEach(x=>x.onclick=async()=>{await sb.from('blocked').delete().eq('id',x.dataset.b);flash('Bloqueo quitado');showPanel();loadBusy()});
 }
+$('pRef').onclick=showPanel;
+document.querySelectorAll('.seg-b').forEach(s=>s.onclick=()=>{document.querySelectorAll('.seg-b').forEach(x=>x.classList.toggle('on',x===s));['pAgenda','pBloqueos'].forEach(i=>$(i).classList.toggle('hide',i!==s.dataset.p))});
+document.querySelectorAll('.qk').forEach(q=>q.onclick=()=>{const d=new Date();d.setDate(d.getDate()+Number(q.dataset.q));$('bDate').value=iso(d);$('bTime').value='';flash('Listo, toca "Bloquear" para confirmar')});
+setInterval(()=>{if(!$('panel').classList.contains('hide'))showPanel()},60000);
 $('bDate').min=iso(new Date());
 $('bTime').innerHTML='<option value="">Todo el día</option>'+times().map(t=>`<option>${t}</option>`).join('');
 $('bAdd').onclick=async()=>{
   if(!$('bDate').value){flash('Elige un día',true);return}
   const{error}=await sb.from('blocked').insert({date:$('bDate').value,time:$('bTime').value||null,reason:$('bWhy').value||null});
   if(error){flash(errTxt(error),true);return}
-  $('bWhy').value='';showPanel();loadBusy();
+  $('bWhy').value='';flash('Horario bloqueado');showPanel();loadBusy();
 };
 
 // ---- Pestañas ----
