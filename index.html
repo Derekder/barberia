@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Barbería – Reserva tu cita</title>
+<style>
+:root{--bg:#f6f1e9;--card:#fff;--ink:#1d1a16;--mut:#7a7166;--acc:#b8312f;--ok:#2f7d4f;--line:#e4dccf;--dis:#ece6db}
+@media (prefers-color-scheme:dark){:root{--bg:#17140f;--card:#221e18;--ink:#f3ece0;--mut:#a39a8c;--line:#383126;--dis:#2b261e;--acc:#e0554f;--ok:#58b57f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+main{max-width:640px;margin:0 auto;padding:20px 16px 60px}
+h1{font-family:Georgia,serif;margin:0;font-size:28px}
+.sub{color:var(--mut);margin:2px 0 16px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:999px;font-size:14px;cursor:pointer}
+.tab.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:0 0 10px}
+.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.day{flex:0 0 auto;min-width:62px;text-align:center;padding:8px 6px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer}
+.day small{display:block;color:var(--mut);font-size:11px;text-transform:uppercase}
+.day b{font-size:18px}
+.day.on{background:var(--acc);border-color:var(--acc);color:#fff}.day.on small{color:#fff}
+.day:disabled{opacity:.4;cursor:not-allowed}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:8px}
+.slot{padding:10px 0;border-radius:10px;border:1px solid var(--ok);background:transparent;color:var(--ok);font-weight:600;cursor:pointer;font-size:14px}
+.slot.on{background:var(--ok);color:#fff}
+.slot:disabled{border-color:var(--line);background:var(--dis);color:var(--mut);text-decoration:line-through;cursor:not-allowed;font-weight:400}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input,select{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px}
+.btn{width:100%;margin-top:14px;padding:13px;border:0;border-radius:10px;background:var(--acc);color:#fff;font-size:16px;font-weight:600;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{width:auto;margin:0;padding:8px 12px;font-size:13px;background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.appt{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.appt:first-of-type{border-top:0}
+.msg{padding:10px 12px;border-radius:10px;margin-bottom:12px;font-size:14px;background:var(--dis)}
+.msg.err{color:var(--acc)}
+.code{font-size:30px;font-weight:800;letter-spacing:4px;text-align:center;margin:8px 0;color:var(--acc)}
+.hide{display:none}.mut{color:var(--mut)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+  <h1>✂️ Barbería</h1>
+  <p class="sub">Reserva tu cita en segundos</p>
+  <div class="tabs">
+    <button class="tab on" data-t="book">Reservar</button>
+    <button class="tab" data-t="mine">Mi cita</button>
+    <button class="tab" data-t="admin">Barbero</button>
+  </div>
+  <div id="flash" class="msg hide"></div>
+
+  <section id="book">
+    <div class="card"><h2>1 · Elige el día</h2><div class="days" id="days"></div></div>
+    <div class="card"><h2>2 · Elige la hora</h2><div class="slots" id="slots"></div>
+      <div class="legend"><span style="color:var(--ok)">■ Disponible</span><span>■ Ocupado</span></div></div>
+    <div class="card"><h2>3 · Tus datos</h2>
+      <label>Servicio</label>
+      <select id="service"><option>Corte</option><option>Barba</option><option>Corte + Barba</option><option>Corte niño</option></select>
+      <label>Nombre</label><input id="name" autocomplete="name" placeholder="Tu nombre">
+      <label>Teléfono</label><input id="phone" type="tel" autocomplete="tel" placeholder="88888888">
+      <button class="btn" id="go" disabled>Apartar cita</button>
+    </div>
+    <div class="card hide" id="done"><h2>¡Cita apartada!</h2><div id="doneTxt"></div><div class="code" id="doneCode"></div>
+      <p class="mut" style="margin:0">Guarda este código (haz captura). Lo necesitas con tu teléfono para ver o cancelar tu cita.</p></div>
+  </section>
+
+  <section id="mine" class="hide">
+    <div class="card"><h2>Ver o cancelar mi cita</h2>
+      <label>Teléfono</label><input id="qPhone" type="tel" placeholder="88888888">
+      <label>Código</label><input id="qCode" placeholder="ABC123" maxlength="6" style="text-transform:uppercase">
+      <button class="btn" id="find">Buscar</button><div id="mineList" style="margin-top:10px"></div></div>
+  </section>
+
+  <section id="admin" class="hide">
+    <div class="card" id="loginBox"><h2>Acceso del barbero</h2>
+      <label>Correo</label><input id="email" type="email" autocomplete="username">
+      <label>Contraseña</label><input id="pass" type="password" autocomplete="current-password">
+      <button class="btn" id="login">Entrar</button></div>
+    <div id="panel" class="hide">
+      <div class="card"><h2>Próximas citas <button class="btn sm" id="logout" style="float:right">Salir</button></h2><div id="adminList"></div></div>
+      <div class="card"><h2>Bloquear horario</h2>
+        <label>Día</label><input id="bDate" type="date">
+        <label>Hora</label><select id="bTime"></select>
+        <label>Motivo (opcional)</label><input id="bWhy" maxlength="80" placeholder="Día libre, cita médica…">
+        <button class="btn" id="bAdd">Bloquear</button>
+        <div id="blockList" style="margin-top:10px"></div></div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+<script>
+// ====== PEGA AQUÍ TUS DATOS DE SUPABASE (Project Settings > API) ======
+const SUPABASE_URL = 'https://coxyqwdgufqkzxjfilui.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_YgD4gzfE3LvymSfw-rKTlg_qS2sG3-m';
+// ======================================================================
+// Horario (debe coincidir con schema.sql)
+const OPEN=9, CLOSE=18, STEP=30, DAYS_AHEAD=14, CLOSED_DAYS=[0], BREAK=[13,14];
+
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=p=>String(p||'').replace(/\D/g,'');
+const dn=['dom','lun','mar','mié','jue','vie','sáb'];
+let busy=new Set(), fullDays=new Set(), selDay=null, selTime=null;
+
+function flash(t,err){const f=$('flash');f.textContent=t;f.className='msg'+(err?' err':'');setTimeout(()=>f.classList.add('hide'),5000)}
+const errTxt=e=>(e&&e.message)||'Ocurrió un error';
+function times(){const o=[];for(let m=OPEN*60;m<CLOSE*60;m+=STEP){const h=Math.floor(m/60);if(h>=BREAK[0]&&h<BREAK[1])continue;o.push(`${pad(h)}:${pad(m%60)}`)}return o}
+
+// ---- Días ----
+function buildDays(){
+  const box=$('days'),now=new Date();let first=null;
+  for(let i=0;i<=DAYS_AHEAD;i++){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i),b=document.createElement('button');
+    b.className='day';b.dataset.d=iso(d);b.innerHTML=`<small>${dn[d.getDay()]}</small><b>${d.getDate()}</b>`;
+    if(CLOSED_DAYS.includes(d.getDay()))b.disabled=true;
+    else{if(!first)first=iso(d);b.onclick=()=>{selDay=iso(d);selTime=null;render()}}
+    box.appendChild(b);
+  }
+  selDay=first;
+}
+async function loadBusy(){
+  const to=new Date();to.setDate(to.getDate()+DAYS_AHEAD+1);
+  const{data,error}=await sb.rpc('get_busy',{p_from:iso(new Date()),p_to:iso(to)});
+  if(error){flash('No se pudieron cargar los horarios',true);return}
+  busy=new Set();fullDays=new Set();
+  data.forEach(r=>r.full_day?fullDays.add(r.d):busy.add(`${r.d}_${r.t.slice(0,5)}`));
+  render();
+}
+function render(){
+  document.querySelectorAll('.day').forEach(b=>{b.classList.toggle('on',b.dataset.d===selDay);if(fullDays.has(b.dataset.d)){b.disabled=true}});
+  const now=new Date(),nowMin=now.getHours()*60+now.getMinutes(),s=$('slots');s.innerHTML='';
+  times().forEach(t=>{
+    const[h,m]=t.split(':').map(Number);
+    const off=busy.has(`${selDay}_${t}`)||fullDays.has(selDay)||(selDay===iso(now)&&h*60+m<=nowMin);
+    const b=document.createElement('button');b.className='slot'+(selTime===t?' on':'');b.textContent=t;b.disabled=off;
+    b.onclick=()=>{selTime=t;render()};s.appendChild(b);
+  });
+  validate();
+}
+function validate(){$('go').disabled=!(selDay&&selTime&&$('name').value.trim().length>=2&&norm($('phone').value).length>=8)}
+['name','phone'].forEach(i=>$(i).addEventListener('input',validate));
+
+// ---- Reservar ----
+$('go').onclick=async()=>{
+  $('go').disabled=true;
+  const{data,error}=await sb.rpc('book_appointment',{p_date:selDay,p_time:selTime,p_name:$('name').value,p_phone:$('phone').value,p_service:$('service').value});
+  if(error){flash(errTxt(error),true);selTime=null;await loadBusy();return}
+  $('doneTxt').textContent=`${selDay} a las ${selTime} · ${$('service').value}`;
+  $('doneCode').textContent=data;$('done').classList.remove('hide');$('done').scrollIntoView({behavior:'smooth'});
+  $('qPhone').value=$('phone').value;$('qCode').value=data;selTime=null;await loadBusy();
+};
+
+// ---- Mi cita ----
+$('find').onclick=async()=>{
+  const{data,error}=await sb.rpc('find_appointments',{p_phone:$('qPhone').value,p_code:$('qCode').value});
+  const el=$('mineList');
+  if(error){flash(errTxt(error),true);return}
+  if(!data.length){el.innerHTML='<p class="mut">No encontramos una cita con esos datos.</p>';return}
+  el.innerHTML=data.map(a=>`<div class="appt"><div><b>${esc(a.date)} · ${esc(a.time.slice(0,5))}</b><br><span class="mut">${esc(a.service)} · ${esc(a.name)}</span></div><button class="btn sm" data-x="1">Cancelar</button></div>`).join('');
+  el.querySelectorAll('[data-x]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('¿Cancelar tu cita?'))return;
+    const{error:e}=await sb.rpc('cancel_appointment',{p_phone:$('qPhone').value,p_code:$('qCode').value});
+    if(e){flash(errTxt(e),true);return}
+    flash('Cita cancelada. El horario quedó libre.');el.innerHTML='';loadBusy();
+  });
+};
+
+// ---- Barbero ----
+$('login').onclick=async()=>{
+  const{error}=await sb.auth.signInWithPassword({email:$('email').value,password:$('pass').value});
+  if(error){flash('Correo o contraseña incorrectos',true);return}
+  showPanel();
+};
+$('logout').onclick=async()=>{await sb.auth.signOut();showPanel()};
+async function showPanel(){
+  const{data:{session}}=await sb.auth.getSession();
+  $('loginBox').classList.toggle('hide',!!session);$('panel').classList.toggle('hide',!session);
+  if(!session)return;
+  const today=iso(new Date());
+  const[a,b]=await Promise.all([
+    sb.from('appointments').select('*').gte('date',today).order('date').order('time'),
+    sb.from('blocked').select('*').gte('date',today).order('date').order('time')]);
+  $('adminList').innerHTML=(a.data||[]).map(r=>`<div class="appt"><div><b>${esc(r.date)} · ${esc(r.time.slice(0,5))}</b><br><span class="mut">${esc(r.name)} · ${esc(r.phone)} · ${esc(r.service)}</span></div><button class="btn sm" data-a="${r.id}">Cancelar</button></div>`).join('')||'<p class="mut">Sin citas próximas.</p>';
+  $('blockList').innerHTML=(b.data||[]).map(r=>`<div class="appt"><div><b>${esc(r.date)} · ${r.time?esc(r.time.slice(0,5)):'Todo el día'}</b><br><span class="mut">${esc(r.reason||'')}</span></div><button class="btn sm" data-b="${r.id}">Quitar</button></div>`).join('');
+  document.querySelectorAll('[data-a]').forEach(x=>x.onclick=async()=>{if(confirm('¿Cancelar esta cita?')){await sb.from('appointments').delete().eq('id',x.dataset.a);showPanel();loadBusy()}});
+  document.querySelectorAll('[data-b]').forEach(x=>x.onclick=async()=>{await sb.from('blocked').delete().eq('id',x.dataset.b);showPanel();loadBusy()});
+}
+$('bTime').innerHTML='<option value="">Todo el día</option>'+times().map(t=>`<option>${t}</option>`).join('');
+$('bAdd').onclick=async()=>{
+  if(!$('bDate').value){flash('Elige un día',true);return}
+  const{error}=await sb.from('blocked').insert({date:$('bDate').value,time:$('bTime').value||null,reason:$('bWhy').value||null});
+  if(error){flash(errTxt(error),true);return}
+  $('bWhy').value='';showPanel();loadBusy();
+};
+
+// ---- Pestañas ----
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  ['book','mine','admin'].forEach(s=>$(s).classList.toggle('hide',s!==t.dataset.t));
+  if(t.dataset.t==='admin')showPanel();
+});
+buildDays();loadBusy();
+</script>
+</body>
+</html>
